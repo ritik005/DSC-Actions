@@ -1,16 +1,3 @@
-// Copyright 2018, Google, Inc.
-// Licensed under the Apache License, Version 2.0 (the 'License');
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//  http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an 'AS IS' BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 'use strict';
 
 // Import the Dialogflow module and response creation dependencies
@@ -109,60 +96,22 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
 
 app.intent('events', (conv) => {
   conv.ask(new Suggestions('Projects', 'Achievement'));
-  let text, description;
+  let text, startDate,endDate;
   let rows = [];
   const y = data.length;
-    // str = str + `Title: ` + data[i].title + '\n' + `Description: ` + data[i].slug + `\n`;
     for(var i=0;i<y;i++)
     {
       text = data[i].title;
-      description = data[i].slug;
-      rows.push([text, description]);
+      startDate = data[i].startDate;
+      endDate = data[i].endDate;
+      rows.push([text, startDate, endDate]);
     }
     conv.ask('Here is the list of all events');
     conv.ask(new Table({
       dividers: true,
-      columns: ['text','description'],
+      columns: ['text','startDate','endDate'],
       rows: rows,
-      // title: data[0].title,
-      // text: data[0].slug
     }));
-  // conv.ask(str);
-
-  // const options = {
-  //   method:'GET',
-  //   url:'https://dsckiet-backend.herokuapp.com/api/v1_old/events',
-  //   headers: {
-  //     'User-Agent': 'Request-Promise'
-  //   },
-  //   json:true
-  // }
-  //   rp(options)
-  //   .then(function(bodyParser){
-  //     var y = bodyParser.pastevents.length;
-  //     console.log(y)
-  //     var data = [];
-  //     for(var i=0;i<y;i++)
-  //     {
-  //       data.push(bodyParser.pastevents[i].title);
-  //     }
-  //     var slugarr = [];
-  //     for(var i=0;i<y;i++)
-  //     {
-  //       slugarr.push(bodyParser.pastevents[i].slug);
-  //     }
-  //     var str = 'here';
-  //     for(i=0;i<y;i++)
-  //     {
-  //       var z=i+1;
-  //       str = str + `Details of events`+ z + `Title: ` + data[i]+`\n`+ `Description: `+ slugarr[i]+`.`;
-  //     }
-  //     return conv.ask(`${str}`);
-  //   })
-  //   .catch(err => {
-  //     console.log(err);
-  //     conv.ask(`errors`);
-  //   })
 })
 
 
