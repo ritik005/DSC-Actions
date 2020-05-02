@@ -1,6 +1,6 @@
 'use strict';
 
-// Import the Dialogflow module and response creation dependencies
+// Import the Dialogflow module and response creation depEndencies
 // from the Actions on Google client library.
 const {
   dialogflow,
@@ -10,7 +10,12 @@ const {
   Carousel,
   Image,
   Table,
+  List,
 } = require('actions-on-google');
+var events = require('./events').events;
+var ComingEvents = require('./events').ComingEvents;
+var team = require('./team').team;
+
 
 // Import the firebase-functions package for deployment.
 const functions = require('firebase-functions');
@@ -18,49 +23,6 @@ const functions = require('firebase-functions');
 // Instantiate the Dialogflow client.
 const app = dialogflow({debug: true});
 const rp = require('request-promise');
-
-var data = [
-  {
-    "status": 1,
-      "_id": "5cab9961ac295a0f3f0d9941",
-      "title": "Hands-on NodeJS Codelab",
-      "image": "",
-      "slug": "hands-on-nodejs-codelab",
-      "description": "",
-      "venue": "CSE Lab 2",
-      "startDate": "2019-02-20T05:00:00.000Z",
-      "endDate": "2019-02-28T07:00:00.000Z",
-      "startTime": "05:00 PM",
-      "__v": 0
-  },
-  {
-    "status": 1,
-    "_id": "5cab9961ac295a0f3f0d9942",
-    "title": "Hands-on Android Codelab",
-    "image": "",
-    "slug": "hands-on-android-codelab",
-    "description": "",
-    "venue": "CSE Lab 2",
-    "startDate": "2019-03-07T05:00:00.000Z",
-    "endDate": "2019-03-12T07:00:00.000Z",
-    "startTime": "05:00 PM",
-    "__v": 0
-  },
-  {
-    "status": 1,
-    "_id": "5d72718e7c213e60b8fa03cf",
-    "title": "Google Cloud Study Jam",
-    "image": "",
-    "slug": "google-cloud-study-jam",
-    "description": "",
-    "venue": "CSE Lab-2, E-Block",
-    "startDate": "2019-08-19T15:00:00.000Z",
-    "endDate": "2019-08-19T17:00:00.000Z",
-    "startTime": "03:00 PM",
-    "__v": 0
-  }
-]
-
 
 // Handle the Dialogflow intent named 'Default Welcome Intent'.
 app.intent('Default Welcome Intent', (conv) => {
@@ -72,8 +34,8 @@ app.intent('Default Welcome Intent', (conv) => {
       permissions: 'NAME',
     }));
   } else {
-    conv.ask(`Hi again, ${name}. What do you want to know?`);
-    conv.ask(new Suggestions('Past events', 'future events', 'Projects'));
+    conv.ask(`Hi again, ${name}. How can I help you?`);
+    conv.ask(new Suggestions('Past events', 'Coming events', 'Team'));
   }
 });
 
@@ -82,38 +44,85 @@ app.intent('Default Welcome Intent', (conv) => {
 app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
   if (!permissionGranted) {
     // If the user denied our request, go ahead with the conversation.
-    conv.ask(`OK, no worries. What do you want to know?`);
-    conv.ask(new Suggestions('Blue', 'Red', 'Green'));
+    conv.ask(`OK, no worries. How can I help you?`);
+    conv.ask(new Suggestions('Past events', 'Coming events', 'Team'));
   } else {
     // If the user accepted our request, store their name in
     // the 'conv.user.storage' object for future conversations.
     conv.user.storage.userName = conv.user.name.display;
     conv.ask(`Thanks, ${conv.user.storage.userName}. ` +
       `What do you want to know?`);
-    conv.ask(new Suggestions('Past events', 'future events', 'Projects'));
+    conv.ask(new Suggestions('Past events', 'future events', 'team'));
   }
 });
 
-app.intent('events', (conv) => {
-  conv.ask(new Suggestions('Projects', 'Achievement'));
-  let text, startDate,endDate;
+app.intent('past_events', (conv) => {
+  conv.ask(new Suggestions('team', 'Bye', 'coming events'));
+  let Title, StartDate,EndDate;
   let rows = [];
-  const y = data.length;
+  const y = events.length;
     for(var i=0;i<y;i++)
     {
-      text = data[i].title;
-      startDate = data[i].startDate;
-      endDate = data[i].endDate;
-      rows.push([text, startDate, endDate]);
+      Title = events[i].title;
+      StartDate = events[i].startDate;
+      EndDate = events[i].endDate;
+      rows.push([Title, StartDate, EndDate]);
     }
-    conv.ask('Here is the list of all events');
+    conv.ask('Here is the list of all events. ');
     conv.ask(new Table({
       dividers: true,
-      columns: ['text','startDate','endDate'],
+      columns: ['Title','StartDate','EndDate'],
       rows: rows,
     }));
-})
+    conv.ask('Would you like to know anything else?')
+});
 
+app.intent('comingEvents', (conv) =>{
+  conv.ask(new Suggestions('team', 'past events'));
+  let Title, StartDate, EndDate;
+  let rows =[];
+  const z = ComingEvents.length;
+  if(z === 0)
+  {
+    conv.ask('No coming events. ');
+    conv.ask('Would you like to know anything else?')
+  }
+  else {
+    for(var i=0;i<z;i++)
+    {
+      Title = ComingEvents[i].title;
+      StartDate = ComingEvents[i].startDate;
+      EndDate = ComingEvents[i].endDate;
+      rows.push([Title, StartDate, EndDate]);
+    }
+    conv.ask('Here is the list of all events. ');
+    conv.ask(new Table({
+      dividers: true,
+      columns: ['Title','StartDate','EndDate'],
+      rows: rows,
+    }));
+    conv.ask('Would you like to know anything else?')
+  }
+});
+
+app.intent('team', (conv) => {
+  conv.ask(new Suggestions('Bye'))
+  let Name, Role;
+  let rows = [];
+  const x = team.length;
+  for(var i=0;i<x;i++)
+  {
+    Name = team[i].name;
+    Role = team[i].role;
+    rows.push([Name, Role]);
+  }
+  conv.ask(`Here are all team members. `);
+  conv.ask(new Table({
+    dividers: true,
+    columns: ['Name','Role'],
+    rows: rows,
+  }));
+});
 
 // Handle the Dialogflow NO_INPUT intent.
 // Triggered when the user doesn't provide input to the Action
